@@ -14,7 +14,7 @@ export default async function handler(request, response) {
 
   // Codificamos el término de búsqueda de nuevo para la URL final de Supabase
   const encodedSearchTerm = encodeURIComponent(searchTerm);
-  const apiUrl = `${supabaseUrl}/rest/v1/servidores?nombre_modelo=ilike.%${encodedSearchTerm}%&select=*`;
+  const apiUrl = `${supabaseUrl}/rest/v1/servidores?select=*`;
   
   try {
     const apiResponse = await fetch(apiUrl, {
