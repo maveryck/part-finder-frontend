@@ -1,4 +1,4 @@
-import '/style.css';
+import '../style.css';
 
 // Referencias a los elementos HTML
 const mainTitle = document.querySelector('h1');
