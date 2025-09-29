@@ -1,45 +1,55 @@
 export default async function handler(request, response) {
-  const supabaseUrl = "https://pofxtrdtjmqqdviewdlg.supabase.co";
-  // Usamos la clave de servicio, que tiene más privilegios
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZnh0cmR0am1xcWR2aWV3ZGxnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTA1MzQyOSwiZXhwIjoyMDc0NjI5NDI5fQ.GesRx7rzTiZrWYmIf2cr20F7952_nHHOam1q72UE-nA";
+  // --- Leemos las claves de forma segura desde las Variables de Entorno de Vercel ---
+  // Nunca expongas tus claves directamente en el código de un repositorio público.
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Usamos la clave de servicio para operaciones de backend.
 
+  // --- Validación de Configuración ---
+  // Si las variables no están definidas en Vercel, devolvemos un error claro.
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Error: Variables de entorno de Supabase no configuradas en Vercel.");
+    return response.status(500).json({ error: 'Configuración del servidor incompleta.' });
+  }
+  
+  // --- Lógica de Búsqueda ---
   const searchTerm = request.query.term || '';
 
   if (!searchTerm) {
-    return response.status(400).json({ error: 'Falta el término de búsqueda.' });
+    return response.status(400).json({ error: 'Falta el término de búsqueda (term).' });
   }
 
-  // Construimos la URL final para la API REST de Supabase
+  // Construimos la URL de la API REST de Supabase.
   const apiUrl = `${supabaseUrl}/rest/v1/servidores?nombre_modelo=ilike.%${encodeURIComponent(searchTerm)}%&select=*`;
   
-  console.log(`Intentando fetch a: ${apiUrl}`);
+  console.log(`Función del servidor ejecutada. Buscando: "${searchTerm}"`);
 
   try {
-    // Usamos fetch directamente, como al principio
+    // Usamos fetch para llamar a la API de Supabase desde el servidor de Vercel.
     const apiResponse = await fetch(apiUrl, {
       headers: {
-        // La clave de servicio se pasa como 'apikey', igual que la 'anon'
+        // La clave de servicio se pasa como 'apikey' para la API REST.
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`
       }
     });
 
-    // Verificamos si la respuesta de Supabase es un error
+    // Si la respuesta de Supabase no es exitosa, capturamos y devolvemos el error.
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
       console.error("Error recibido de Supabase:", errorText);
-      // Lanzamos el error para que sea capturado por el bloque catch
-      throw new Error(errorText);
+      throw new Error(errorText); // Lanzamos el texto del error para que sea capturado por el bloque catch.
     }
 
+    // Si todo va bien, convertimos la respuesta a JSON.
     const data = await apiResponse.json();
     
-    // Devolvemos los datos al frontend
+    // Devolvemos los datos al frontend.
     return response.status(200).json(data);
     
   } catch (error) {
-    console.error("Error en la función del servidor (catch):", error.message);
-    // Devolvemos el mensaje de error real de Supabase
+    // Si algo falla en el proceso, lo registramos en los logs de Vercel.
+    console.error("Error en el bloque catch de la función del servidor:", error.message);
+    // Devolvemos un error 500 con el mensaje capturado.
     return response.status(500).json({ error: error.message });
   }
 }
