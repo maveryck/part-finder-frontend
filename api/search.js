@@ -1,16 +1,9 @@
 export default async function handler(request, response) {
-  // --- Leemos las claves de forma segura desde las Variables de Entorno de Vercel ---
-  // Nunca expongas tus claves directamente en el código de un repositorio público.
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Usamos la clave de servicio para operaciones de backend.
+  // --- Claves de Supabase directamente en el código para la prueba ---
+  const supabaseUrl = "https://pofxtrdtjmqqdviewdlg.supabase.co";
+  // Usamos la clave de servicio para tener máximos privilegios desde el backend
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZnh0cmR0am1xcWR2aWV3ZGxnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTA1MzQyOSwiZXhwIjoyMDc0NjI5NDI5fQ.GesRx7rzTiZrWYmIf2cr20F7952_nHHOam1q72UE-nA";
 
-  // --- Validación de Configuración ---
-  // Si las variables no están definidas en Vercel, devolvemos un error claro.
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("Error: Variables de entorno de Supabase no configuradas en Vercel.");
-    return response.status(500).json({ error: 'Configuración del servidor incompleta.' });
-  }
-  
   // --- Lógica de Búsqueda ---
   const searchTerm = request.query.term || '';
 
@@ -21,7 +14,7 @@ export default async function handler(request, response) {
   // Construimos la URL de la API REST de Supabase.
   const apiUrl = `${supabaseUrl}/rest/v1/servidores?nombre_modelo=ilike.%${encodeURIComponent(searchTerm)}%&select=*`;
   
-  console.log(`Función del servidor ejecutada. Buscando: "${searchTerm}"`);
+  console.log(`Intentando fetch a: ${apiUrl}`);
 
   try {
     // Usamos fetch para llamar a la API de Supabase desde el servidor de Vercel.
@@ -33,7 +26,7 @@ export default async function handler(request, response) {
       }
     });
 
-    // Si la respuesta de Supabase no es exitosa, capturamos y devolvemos el error.
+    // Si la respuesta de Supabase no es exitosa, capturamos el texto del error.
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
       console.error("Error recibido de Supabase:", errorText);
@@ -49,7 +42,7 @@ export default async function handler(request, response) {
   } catch (error) {
     // Si algo falla en el proceso, lo registramos en los logs de Vercel.
     console.error("Error en el bloque catch de la función del servidor:", error.message);
-    // Devolvemos un error 500 con el mensaje capturado.
+    // Devolvemos el mensaje de error capturado.
     return response.status(500).json({ error: error.message });
   }
 }
