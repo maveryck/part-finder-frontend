@@ -106,4 +106,12 @@ if (resultsContainer) {
     if (target.matches('.view-parts-btn')) {
       event.preventDefault(); // Evita que el enlace '#' recargue la página
       const serverId = target.dataset.serverId;
-      const componentsContainer = document.querySelector(`#comp
+      const componentsContainer = document.querySelector(`#components-for-${serverId}`);
+      if (serverId && componentsContainer) {
+        getAndDisplayComponents(serverId, componentsContainer);
+      }
+    }
+  });
+}
+
+mainTitle.textContent = 'Busca un Servidor por Modelo';
