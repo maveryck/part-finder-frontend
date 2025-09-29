@@ -5,7 +5,7 @@ export default async function handler(request, response) {
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZnh0cmR0am1xcWR2aWV3ZGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNTM0MjksImV4cCI6MjA3NDYyOTQyOX0.SYCQuh9YSBgzvtU2Invo0_tPjTDZHz6Fu162C4uX7Ws";
 
   // Obtenemos el término de búsqueda de la URL (ej: /api/search?term=R760)
-  const searchTerm = request.query.term;
+  const searchTerm = decodeURIComponent(request.query.term || '');
   
   // Verificamos que el término de búsqueda fue enviado
   if (!searchTerm) {
