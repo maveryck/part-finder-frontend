@@ -2,19 +2,15 @@ export default async function handler(request, response) {
   const supabaseUrl = "https://pofxtrdtjmqqdviewdlg.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZnh0cmR0am1xcWR2aWV3ZGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNTM0MjksImV4cCI6MjA3NDYyOTQyOX0.SYCQuh9YSBgzvtU2Invo0_tPjTDZHz6Fu162C4uX7Ws";
 
-  // Usamos decodeURIComponent para manejar espacios y caracteres especiales
-  const searchTerm = decodeURIComponent(request.query.term || '');
+  const searchTerm = request.query.term || '';
   
-  // Log para depuración en Vercel
-  console.log(`Buscando término: "${searchTerm}"`);
+  // Construimos la URL base sin el filtro
+  let apiUrl = `${supabaseUrl}/rest/v1/servidores?select=*`;
 
-  if (!searchTerm) {
-    return response.status(400).json({ error: 'Falta el término de búsqueda (term).' });
+  // Si hay un término de búsqueda, añadimos el filtro 'ilike' de forma segura
+  if (searchTerm) {
+    apiUrl += `&nombre_modelo=ilike.%${encodeURIComponent(searchTerm)}%`;
   }
-
-  // Codificamos el término de búsqueda de nuevo para la URL final de Supabase
-  const encodedSearchTerm = encodeURIComponent(searchTerm);
-  const apiUrl = `${supabaseUrl}/rest/v1/servidores?select=*`;
   
   try {
     const apiResponse = await fetch(apiUrl, {
@@ -27,12 +23,10 @@ export default async function handler(request, response) {
 
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
-      console.error("Error desde Supabase:", errorText);
-      throw new Error(`Error al contactar la base de datos: ${apiResponse.statusText}`);
+      throw new Error(`Error desde Supabase: ${errorText}`);
     }
 
     const data = await apiResponse.json();
-    
     return response.status(200).json(data);
     
   } catch (error) {
