@@ -1,22 +1,37 @@
+import '/style.css';
+
 // Referencias a los elementos HTML
 const mainTitle = document.querySelector('h1');
 const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
 const resultsContainer = document.querySelector('#results-container');
 
-function displayResults(servidores) {
+function displayResults(data) {
   if (!resultsContainer) return;
-  if (!servidores || servidores.length === 0) {
-    resultsContainer.innerHTML = '<p>No se encontraron servidores que coincidan.</p>';
-    return;
+
+  // --- ¡LA LÓGICA MEJORADA! ---
+  // Primero, comprobamos si la respuesta es un array.
+  if (Array.isArray(data)) {
+    if (data.length === 0) {
+      resultsContainer.innerHTML = '<p>No se encontraron servidores que coincidan.</p>';
+      return;
+    }
+    // Si es un array, lo mapeamos como antes.
+    const serverHtml = data.map(s => `
+      <div style="border-bottom: 1px solid #eee; padding: 1rem 0;">
+        <h3>${s.marca} ${s.nombre_modelo}</h3>
+        <p>ID: ${s.id}</p>
+      </div>
+    `).join('');
+    resultsContainer.innerHTML = serverHtml;
+  } else if (data && data.error) {
+    // Si NO es un array pero tiene una propiedad 'error', mostramos ese error.
+    console.error("Error recibido de la API del servidor:", data.error);
+    resultsContainer.innerHTML = `<p style="color:red;">Error del servidor: ${data.error}</p>`;
+  } else {
+    // Para cualquier otro caso inesperado.
+    resultsContainer.innerHTML = '<p style="color:red;">Respuesta inesperada del servidor.</p>';
   }
-  const serverHtml = servidores.map(s => `
-    <div style="border-bottom: 1px solid #eee; padding: 1rem 0;">
-      <h3>${s.marca} ${s.nombre_modelo}</h3>
-      <p>ID: ${s.id}</p>
-    </div>
-  `).join('');
-  resultsContainer.innerHTML = serverHtml;
 }
 
 async function searchServers(searchTerm) {
@@ -26,13 +41,15 @@ async function searchServers(searchTerm) {
   try {
     const apiUrl = `/api/search?term=${encodeURIComponent(searchTerm)}`;
     const response = await fetch(apiUrl);
+    
+    // Obtenemos la respuesta como JSON, sin importar si es un éxito o un error.
+    const data = await response.json();
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error de red: ${response.statusText}`);
+      // Si la respuesta HTTP no fue 200, lanzamos el mensaje de error del JSON.
+      throw new Error(data.error || `Error de red: ${response.statusText}`);
     }
     
-    const data = await response.json();
     displayResults(data);
 
   } catch (error) {
