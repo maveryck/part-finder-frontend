@@ -1,27 +1,22 @@
 import { sql } from '@vercel/postgres';
 
 export default async function handler(request, response) {
-  console.log("Iniciando función de prueba de conexión...");
+  const searchTerm = request.query.term || '';
+
+  if (!searchTerm) {
+    return response.status(400).json({ error: 'Falta el término de búsqueda.' });
+  }
 
   try {
-    // La consulta más simple posible: pide la hora actual al servidor de la base de datos.
-    // No toca ninguna de nuestras tablas.
-    const { rows } = await sql`SELECT NOW();`;
+    const { rows } = await sql`
+      SELECT * FROM servidores 
+      WHERE nombre_modelo ILIKE ${'%' + searchTerm + '%'};
+    `;
     
-    // Si llegamos aquí, la conexión FUE EXITOSA.
-    console.log("¡Conexión exitosa! Respuesta de la base de datos:", rows);
-    
-    return response.status(200).json({ 
-      message: "Conexión a la base de datos exitosa.",
-      databaseTime: rows[0].now 
-    });
+    return response.status(200).json(rows);
 
   } catch (error) {
-    // Si esto falla, el problema es 100% la conexión.
-    console.error("FALLO DE CONEXIÓN:", error);
-    return response.status(500).json({ 
-      error: "No se pudo establecer la conexión con la base de datos.",
-      details: error.message 
-    });
+    console.error("Error al ejecutar la consulta SQL:", error);
+    return response.status(500).json({ error: error.message });
   }
 }
