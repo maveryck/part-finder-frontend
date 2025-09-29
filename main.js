@@ -1,5 +1,3 @@
-import '/style.css';
-
 // Referencias a los elementos HTML
 const mainTitle = document.querySelector('h1');
 const searchForm = document.querySelector('#search-form');
