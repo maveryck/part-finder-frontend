@@ -7,8 +7,8 @@ const mainTitle = document.querySelector('h1');
 async function fetchAndDisplayServers() {
   try {
     // Reemplaza estas variables con tus Variables de Entorno de Vercel
-    const supabaseUrl = 'TU_SUPABASE_URL'; 
-    const supabaseKey = 'TU_SUPABASE_KEY';
+    const supabaseUrl = 'https://pofxtrdtjmqqdviewdlg.supabase.co'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZnh0cmR0am1xcWR2aWV3ZGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNTM0MjksImV4cCI6MjA3NDYyOTQyOX0.SYCQuh9YSBgzvtU2Invo0_tPjTDZHz6Fu162C4uX7Ws';
 
     if (!supabaseUrl.startsWith('http') || !supabaseKey) {
       throw new Error("Las claves de Supabase no están configuradas correctamente.");
