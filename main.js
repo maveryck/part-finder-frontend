@@ -6,77 +6,73 @@ const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input');
 const resultsContainer = document.querySelector('#results-container');
 
-// --- NUEVA FUNCIÓN: Obtiene y muestra los componentes para un servidor específico ---
+// --- Función para mostrar los componentes ---
 async function getAndDisplayComponents(serverId, containerElement) {
-  containerElement.innerHTML = '<p>Cargando componentes...</p>';
+  containerElement.innerHTML = '<p class="text-center text-slate-500 py-4">Cargando componentes...</p>';
   try {
     const response = await fetch(`/api/get-components?serverId=${serverId}`);
     const components = await response.json();
-
-    if (!response.ok) {
-      throw new Error(components.error || 'Error al cargar componentes.');
-    }
+    if (!response.ok) throw new Error(components.error || 'Error al cargar componentes.');
 
     if (components.length === 0) {
-      containerElement.innerHTML = '<p>No se encontraron componentes para este servidor.</p>';
+      containerElement.innerHTML = '<p class="text-center text-slate-600 bg-slate-100 p-4 rounded-lg">No se encontraron componentes para este servidor.</p>';
       return;
     }
 
-    // Creamos una tabla para mostrar los componentes de forma ordenada
     const componentsHtml = `
-      <table>
-        <thead>
-          <tr>
-            <th>Categoría</th>
-            <th>Descripción</th>
-            <th>Part Number</th>
-            <th>Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${components.map(comp => `
+      <div class="overflow-x-auto mt-4 bg-white rounded-lg shadow">
+        <table class="min-w-full text-left text-sm">
+          <thead class="border-b bg-slate-100">
             <tr>
-              <td>${comp.categoria || ''}</td>
-              <td>${comp.descripcion}</td>
-              <td><strong>${comp.part_number || ''}</strong></td>
-              <td>${comp.notas || ''}</td>
+              <th class="px-6 py-3 font-medium text-slate-700">Categoría</th>
+              <th class="px-6 py-3 font-medium text-slate-700">Descripción</th>
+              <th class="px-6 py-3 font-medium text-slate-700">Part Number</th>
+              <th class="px-6 py-3 font-medium text-slate-700">Notas</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${components.map(comp => `
+              <tr class="border-b hover:bg-slate-50">
+                <td class="px-6 py-4 text-slate-600">${comp.categoria || ''}</td>
+                <td class="px-6 py-4 text-slate-800">${comp.descripcion}</td>
+                <td class="px-6 py-4 font-mono font-semibold text-blue-700">${comp.part_number || ''}</td>
+                <td class="px-6 py-4 text-slate-600">${comp.notas || ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     `;
     containerElement.innerHTML = componentsHtml;
 
   } catch (error) {
-    containerElement.innerHTML = `<p style="color:red;">${error.message}</p>`;
+    containerElement.innerHTML = `<p class="text-red-500">${error.message}</p>`;
   }
 }
 
-// --- Función para mostrar los resultados de la BÚSQUEDA DE SERVIDORES ---
+// --- Función para mostrar los resultados de la búsqueda ---
 function displayResults(servidores) {
   if (!resultsContainer) return;
   if (servidores.length === 0) {
-    resultsContainer.innerHTML = '<p>No se encontraron servidores que coincidan.</p>';
+    resultsContainer.innerHTML = '<p class="text-center text-xl text-slate-600 mt-8">No se encontraron servidores que coincidan.</p>';
     return;
   }
   
   const serverHtml = servidores.map(s => `
-    <div class="resultado-item" style="border-bottom: 1px solid #eee; padding: 1rem 0;">
-      <h3>${s.nombre_modelo}</h3>
-      <p>Marca: ${s.marca} / ID: ${s.id}</p>
-      <!-- ¡CAMBIOS IMPORTANTES AQUÍ! -->
-      <a href="#" class="view-parts-btn" data-server-id="${s.id}">Ver todos los Part Numbers</a>
-      <!-- Contenedor para los componentes de ESTE servidor -->
-      <div class="components-container" id="components-for-${s.id}"></div>
+    <div class="resultado-item bg-white p-6 rounded-lg shadow-md mb-6">
+      <h2 class="text-2xl font-bold text-slate-800">${s.nombre_modelo}</h2>
+      <p class="text-slate-500 mb-4">Marca: ${s.marca} / ID: ${s.id}</p>
+      <a href="#" class="view-parts-btn text-blue-600 hover:underline" data-server-id="${s.id}">Ver Part Numbers</a>
+      <div class="components-container mt-4" id="components-for-${s.id}"></div>
     </div>
   `).join('');
   resultsContainer.innerHTML = serverHtml;
 }
 
-// --- Función para BUSCAR servidores ---
+// --- Función para buscar servidores ---
 async function searchServers(searchTerm) {
-  mainTitle.textContent = `Resultados para: "${searchTerm}"`;
-  resultsContainer.innerHTML = '<p>Buscando...</p>';
+  if (!resultsContainer) return;
+  resultsContainer.innerHTML = '<p class="text-center text-xl text-slate-500 mt-8">Buscando...</p>';
   try {
     const apiUrl = `/api/search?term=${encodeURIComponent(searchTerm)}`;
     const response = await fetch(apiUrl);
@@ -84,12 +80,11 @@ async function searchServers(searchTerm) {
     if (!response.ok) throw new Error(data.error || 'Error de red');
     displayResults(data);
   } catch (error) {
-    mainTitle.textContent = 'Error';
-    resultsContainer.innerHTML = `<p style="color:red;">${error.message}</p>`;
+    resultsContainer.innerHTML = `<p class="text-center text-red-500 mt-8">${error.message}</p>`;
   }
 }
 
-// --- Event Listener para el formulario de BÚSQUEDA ---
+// --- Event Listeners ---
 if (searchForm) {
   searchForm.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -98,20 +93,17 @@ if (searchForm) {
   });
 }
 
-// --- NUEVO Event Listener para los clics en "Ver todos los Part Numbers" ---
 if (resultsContainer) {
   resultsContainer.addEventListener('click', (event) => {
-    // Comprobamos si el elemento clicado es uno de nuestros botones
     const target = event.target;
     if (target.matches('.view-parts-btn')) {
-      event.preventDefault(); // Evita que el enlace '#' recargue la página
+      event.preventDefault();
       const serverId = target.dataset.serverId;
       const componentsContainer = document.querySelector(`#components-for-${serverId}`);
-      if (serverId && componentsContainer) {
+      // Evita recargar si ya hay contenido
+      if (serverId && componentsContainer && !componentsContainer.innerHTML) {
         getAndDisplayComponents(serverId, componentsContainer);
       }
     }
   });
 }
-
-mainTitle.textContent = 'Busca un Servidor por Modelo';
